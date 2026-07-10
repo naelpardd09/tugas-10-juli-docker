@@ -1,0 +1,56 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: aegira_loan
+      POSTGRES_USER: aegira
+      POSTGRES_PASSWORD: aegira_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aegira -d aegira_loan"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:5.0.3-alpine
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  backend:
+    build: ./aegira-loan-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/aegira_loan
+      SPRING_DATASOURCE_USERNAME: aegira
+      SPRING_DATASOURCE_PASSWORD: aegira_password
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: change-this-secret
+      JWT_EXPIRATION: 3600000
+      LOAN_DATA_SOURCE_MODE: ${LOAN_DATA_SOURCE_MODE:-DATABASE}
+      IDEMPOTENCY_ENABLED: ${IDEMPOTENCY_ENABLED:-true}
+      IDEMPOTENCY_TTL_SECONDS: 86400
+
+  frontend:
+    build: ./creditappdemo
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  redis_data:
