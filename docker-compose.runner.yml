@@ -6,9 +6,10 @@ services:
         environment:
             REPO_URL: https://github.com/naelpardd09/tugas-10-juli-docker
             RUNNER_NAME: laptop-runner
-            RUNNER_TOKEN: BEKMXUU7SHJ3PJUXUTL2BLDKKDX7Y   # ganti dengan token
-            LABELS: docker-local
+            RUNNER_TOKEN: BEKMXUV3EDHE6ZKQ43IRMVLKKRF5G   # ganti dengan token
+            LABELS: docker-local-cicd
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
             - ./runner-data:/runner/data
         restart: unless-stopped
+
